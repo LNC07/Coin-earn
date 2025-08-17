@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Telegram Earning WebApp</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: #fff;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      padding: 20px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .balance {
+      margin: 20px;
+      font-size: 22px;
+    }
+    .btn {
+      display: inline-block;
+      background: #00c853;
+      color: white;
+      padding: 15px 25px;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .btn:hover {
+      background: #009624;
+    }
+    .task-box {
+      background: #1e1e1e;
+      margin: 15px;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    footer {
+      margin-top: 30px;
+      font-size: 14px;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+  <header>💸 Telegram Earning WebApp 💸</header>
+  <div class="balance">Your Balance: <span id="balance">0</span> Coins</div>
+
+  <button class="btn" onclick="doTask()">Complete Task +100</button>
+  <button class="btn" onclick="withdraw()">Withdraw</button>
+
+  <div class="task-box">
+    <h3>Daily Task</h3>
+    <p>Click button & earn coins daily</p>
+    <button class="btn" onclick="dailyReward()">Claim Daily +500</button>
+  </div>
+
+  <footer>Powered by Telegram WebApp + Firebase</footer>
+
+  <script type="module">
+    // ✅ Firebase config
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+      projectId: "YOUR_PROJECT",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // ✅ Telegram user detect
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    let userId = tg.initDataUnsafe?.user?.id || "guest_" + Math.floor(Math.random()*1000);
+
+    let balanceEl = document.getElementById("balance");
+    let balance = 0;
+
+    // ✅ Load balance
+    async function loadBalance() {
+      const snapshot = await get(ref(db, "users/" + userId));
+      if (snapshot.exists()) {
+        balance = snapshot.val().balance;
+      } else {
+        balance = 0;
+      }
+      balanceEl.textContent = balance;
+    }
+
+    loadBalance();
+
+    // ✅ Save balance
+    function saveBalance() {
+      set(ref(db, "users/" + userId), { balance: balance });
+    }
+
+    // ✅ Task
+    function doTask() {
+      balance += 100;
+      balanceEl.textContent = balance;
+      saveBalance();
+      alert("You earned 100 coins!");
+    }
+
+    // ✅ Daily Reward
+    function dailyReward() {
+      balance += 500;
+      balanceEl.textContent = balance;
+      saveBalance();
+      alert("You claimed 500 daily coins!");
+    }
+
+    // ✅ Withdraw
+    function withdraw() {
+      if (balance >= 1000) {
+        alert("Withdraw successful! (Demo)");
+        balance -= 1000;
+        balanceEl.textContent = balance;
+        saveBalance();
+      } else {
+        alert("Not enough balance! Need 1000 coins.");
+      }
+    }
+  </script>
+</body>
+</html>
